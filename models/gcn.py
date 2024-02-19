@@ -23,7 +23,10 @@ args = Args(rho=0.05, radius=0.05, alpha=0.99, epoch_steps=1, gamma=0.5)
 
 class GCN(L.LightningModule):
     def __init__(
-            self, num_features: int, num_classes: int, with_sam: bool = True,
+        self,
+        num_features: int,
+        num_classes: int,
+        with_sam: bool = True,
     ):
         super().__init__()
         if with_sam:
@@ -36,6 +39,8 @@ class GCN(L.LightningModule):
         self.conv2 = GCNConv(4, 4)
         self.conv3 = GCNConv(4, 2)
         self.classifier = Linear(2, num_classes)
+
+        self.batch_num = 0
 
         self.criterion = nn.CrossEntropyLoss()
 
@@ -85,10 +90,16 @@ class GCN(L.LightningModule):
             return loss
 
         if self.with_sam:
-            if batch_idx == 0:
-                opt.optimizer.step(batch_idx, batch_idx, closure=closure, loss=loss)
+            if self.batch_num == 0:
+                opt.optimizer.step(
+                    self.batch_num, self.batch_num, closure=closure, loss=loss
+                )
             else:
-                opt.optimizer.step(batch_idx, batch_idx, closure=closure)
+                opt.optimizer.step(
+                    self.batch_num, self.batch_num, closure=closure
+                )
+
+            self.batch_num += 1
 
         return loss
 
@@ -114,4 +125,5 @@ class GCN(L.LightningModule):
 
         # loss = self.criterion(out[node_mask], batch.y[label_mask])
         acc = (pred[node_mask] == batch.y[label_mask]).float().mean()
+        print(f"{stage}_accuracy", acc)
         self.log(f"{stage}_accuracy", acc, prog_bar=False)

@@ -17,7 +17,7 @@ def main():
 
     trainer = Trainer(
         limit_train_batches=100,
-        max_epochs=500,
+        max_epochs=1000,
         fast_dev_run=False,
         accelerator="cpu",
     )

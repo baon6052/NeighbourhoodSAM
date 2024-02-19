@@ -1,12 +1,13 @@
 from dataclasses import dataclass
 
+import lightning as L
 import torch
-from graph_sam import GraphSAM
+from torch import nn, optim
 from torch.nn import Linear, Parameter
 from torch_geometric.nn import GCNConv, MessagePassing
 from torch_geometric.utils import add_self_loops, degree
-import lightning as L
-from torch import nn, optim
+
+from graph_sam import GraphSAM
 
 
 @dataclass
@@ -59,21 +60,55 @@ class GCN(L.LightningModule):
         return optimizer
 
     def training_step(self, batch, batch_idx):
-        print(batch)
         out, h = self.forward(batch.x, batch.edge_index)
         out = out.cpu()
         batch = batch.cpu()
 
         loss = self.criterion(out[batch.train_mask], batch.y[batch.train_mask])
+        self.log("train/loss", loss, prog_bar=True)
 
         opt = self.optimizers()
 
+        x = batch.x
+        edge_index = batch.edge_index
+        train_mask = batch.train_mask
+
         def closure():
-            loss = self.compute_loss(batch)
-            opt.zero_grad()
-            self.manual_backward(loss)
+            out, h = self.forward(x, edge_index)
+            out = out.cpu()
+            y = batch.y
+
+            loss = self.criterion(out[train_mask], y[train_mask])
+            loss.backward()
             return loss
 
-        opt.step(batch_idx, batch_idx, closure=closure, loss=loss)
+        if batch_idx == 0:
+            opt.optimizer.step(batch_idx, batch_idx, closure=closure, loss=loss)
+        else:
+            opt.optimizer.step(batch_idx, batch_idx, closure=closure)
 
         return loss
+
+    def validation_step(self, batch, batch_idx):
+        self._evaluate(batch, "val")
+
+    def test_step(self, batch, batch_idx):
+        self._evaluate(batch, "test")
+
+    def _evaluate(self, batch, stage: str):
+        out, h = self.forward(batch.x, batch.edge_index)
+        out = out.cpu()
+        batch = batch.cpu()
+
+        node_mask = batch.val_mask
+        label_mask = batch.val_mask
+
+        if stage == "test":
+            node_mask = batch.test_mask
+            label_mask = batch.test_mask
+
+        pred = out.argmax(1)
+
+        # loss = self.criterion(out[node_mask], batch.y[label_mask])
+        acc = (pred[node_mask] == batch.y[label_mask]).float().mean()
+        self.log(f"{stage}_accuracy", acc, prog_bar=False)

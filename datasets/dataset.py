@@ -30,6 +30,12 @@ class Dataset(L.LightningDataModule):
     def train_dataloader(self) -> DataLoader:
         return DataLoader(self.dataset)
 
+    def val_dataloader(self) -> DataLoader:
+        return DataLoader(self.dataset)
+
+    def test_dataloader(self) -> DataLoader:
+        return DataLoader(self.dataset)
+
 
 class KarateClubDataset(Dataset):
     def __init__(self):

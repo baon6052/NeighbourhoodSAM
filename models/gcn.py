@@ -3,9 +3,8 @@ from dataclasses import dataclass
 import lightning as L
 import torch
 from torch import nn, optim
-from torch.nn import Linear, Parameter
-from torch_geometric.nn import GCNConv, MessagePassing
-from torch_geometric.utils import add_self_loops, degree
+from torch.nn import Linear
+from torch_geometric.nn import GCNConv
 
 from graph_sam import GraphSAM
 
@@ -24,12 +23,13 @@ args = Args(rho=0.05, radius=0.05, alpha=0.99, epoch_steps=1, gamma=0.5)
 
 class GCN(L.LightningModule):
     def __init__(
-        self, num_features: int, num_classes: int, visualise: bool = False
+            self, num_features: int, num_classes: int, with_sam: bool = True,
     ):
         super().__init__()
-        self.automatic_optimization = False
+        if with_sam:
+            self.automatic_optimization = False
 
-        self.visualise = visualise
+        self.with_sam = with_sam
 
         torch.manual_seed(1234)
         self.conv1 = GCNConv(num_features, 4)
@@ -51,13 +51,17 @@ class GCN(L.LightningModule):
         return out, h
 
     def configure_optimizers(self):
+
         base_optimizer = optim.Adam
 
-        optimizer = GraphSAM(
-            params=self.parameters(), arg=args, base_optimizer=base_optimizer
-        )
+        if self.with_sam:
+            optimizer = GraphSAM(
+                params=self.parameters(), arg=args, base_optimizer=base_optimizer
+            )
 
-        return optimizer
+            return optimizer
+        else:
+            return base_optimizer(self.parameters(), lr=0.01)
 
     def training_step(self, batch, batch_idx):
         out, h = self.forward(batch.x, batch.edge_index)
@@ -82,10 +86,11 @@ class GCN(L.LightningModule):
             loss.backward()
             return loss
 
-        if batch_idx == 0:
-            opt.optimizer.step(batch_idx, batch_idx, closure=closure, loss=loss)
-        else:
-            opt.optimizer.step(batch_idx, batch_idx, closure=closure)
+        if self.with_sam:
+            if batch_idx == 0:
+                opt.optimizer.step(batch_idx, batch_idx, closure=closure, loss=loss)
+            else:
+                opt.optimizer.step(batch_idx, batch_idx, closure=closure)
 
         return loss
 

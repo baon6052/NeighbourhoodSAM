@@ -51,17 +51,15 @@ class GCN(L.LightningModule):
         return out, h
 
     def configure_optimizers(self):
-
         base_optimizer = optim.Adam
+        optimizer = GraphSAM(
+            params=self.parameters(), arg=args, base_optimizer=base_optimizer
+        )
 
         if self.with_sam:
-            optimizer = GraphSAM(
-                params=self.parameters(), arg=args, base_optimizer=base_optimizer
-            )
-
             return optimizer
-        else:
-            return base_optimizer(self.parameters(), lr=0.01)
+
+        return base_optimizer(self.parameters(), lr=0.01)
 
     def training_step(self, batch, batch_idx):
         out, h = self.forward(batch.x, batch.edge_index)

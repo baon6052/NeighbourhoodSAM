@@ -5,6 +5,8 @@ from graph_sam import GraphSAM
 from torch.nn import Linear, Parameter
 from torch_geometric.nn import GCNConv, MessagePassing
 from torch_geometric.utils import add_self_loops, degree
+import lightning as L
+from torch import nn, optim
 
 
 @dataclass
@@ -24,6 +26,7 @@ class GCN(L.LightningModule):
         self, num_features: int, num_classes: int, visualise: bool = False
     ):
         super().__init__()
+        self.automatic_optimization = False
 
         self.visualise = visualise
 
@@ -47,7 +50,7 @@ class GCN(L.LightningModule):
         return out, h
 
     def configure_optimizers(self):
-        base_optimizer = optim.Adam(self.parameters(), lr=0.01)
+        base_optimizer = optim.Adam
 
         optimizer = GraphSAM(
             params=self.parameters(), arg=args, base_optimizer=base_optimizer
@@ -56,6 +59,7 @@ class GCN(L.LightningModule):
         return optimizer
 
     def training_step(self, batch, batch_idx):
+        print(batch)
         out, h = self.forward(batch.x, batch.edge_index)
         out = out.cpu()
         batch = batch.cpu()

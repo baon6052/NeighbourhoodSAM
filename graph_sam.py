@@ -151,7 +151,7 @@ class GraphSAM(torch.optim.Optimizer):
         self.gradh = None
         self.grads = None
         self.alpha = arg.alpha
-        self.device = torch.device(f"cuda:{arg.gpu}")
+        # self.device = torch.device(f"cuda:{arg.gpu}")
         self.step_size = arg.epoch_steps
         self.gamma = arg.gamma
 

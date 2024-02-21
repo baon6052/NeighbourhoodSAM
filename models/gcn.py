@@ -84,7 +84,7 @@ class GCN(L.LightningModule):
             train_mask = batch.train_mask
             loss = self.criterion(out[train_mask], y[train_mask])
 
-        self.log("train/loss", loss, prog_bar=True)
+        self.log("train/loss", loss, batch_size=len(y), prog_bar=True)
 
         def closure():
             out = self.forward(x, edge_index, batch.batch)
@@ -138,5 +138,6 @@ class GCN(L.LightningModule):
         acc = (pred_labels == true_labels).mean()
 
         # auc_score = roc_auc_score(true_labels, pred_probs, multi_class='ovr')
-
-        self.log(f"{stage}/accuracy", acc, prog_bar=True)
+        self.log(
+            f"{stage}/accuracy", acc, batch_size=len(true_labels), prog_bar=True
+        )

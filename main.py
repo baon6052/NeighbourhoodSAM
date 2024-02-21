@@ -14,8 +14,6 @@ from datasets.dataset import (
 )
 from models.gcn import GCN
 
-wandb_logger = WandbLogger(project="setup_tests", entity="r252_bel")
-
 
 def get_dataset(
     dataset_type: str, dataset_name: str, fold_idx: int, batch_size: int
@@ -52,6 +50,7 @@ def get_dataset(
 @click.option("--batch_size", type=int, default=64)
 @click.option("--with_sam", type=bool, default=True)
 @click.option("--seed", type=int, default=1234)
+@click.option("--use_wandb", type=bool, default=True)
 def main(
     dataset_type: str,
     dataset_name: str,
@@ -62,6 +61,7 @@ def main(
     batch_size: int,
     with_sam: bool,
     seed: int,
+    use_wandb: bool,
 ):
     datamodule = get_dataset(dataset_type, dataset_name, fold_idx, batch_size)
     model = GCN(
@@ -74,11 +74,15 @@ def main(
         seed=seed,
     )
 
+    wandb_logger = None
+
+    if use_wandb:
+        wandb_logger = WandbLogger(project="setup_tests", entity="r252_bel")
+
     trainer = Trainer(
         limit_train_batches=100,
         max_epochs=300,
         fast_dev_run=False,
-        accelerator="cpu",
         logger=wandb_logger,
     )
 

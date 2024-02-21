@@ -1,8 +1,5 @@
-from dataclasses import dataclass
-
 import lightning as L
 import torch
-from sklearn.metrics import roc_auc_score
 from torch import nn, optim
 from torch.nn import Linear
 from torch.nn.functional import elu, softmax
@@ -121,6 +118,7 @@ class GCN(L.LightningModule):
         if self.graph_classification:
             pred_probs = softmax(out, dim=1).detach().numpy()
             true_labels = batch.y.detach().numpy()
+            loss = self.criterion(out, batch.y)
 
         else:
             node_mask = batch.val_mask
@@ -132,12 +130,14 @@ class GCN(L.LightningModule):
 
             pred_probs = softmax(out[node_mask], dim=1).detach().numpy()
             true_labels = batch.y[label_mask].detach().numpy()
+            loss = self.criterion(out[node_mask], batch.y[label_mask])
 
         # Calculate accuracy
         pred_labels = pred_probs.argmax(axis=1)
         acc = (pred_labels == true_labels).mean()
 
         # auc_score = roc_auc_score(true_labels, pred_probs, multi_class='ovr')
+        self.log(f"{stage}/loss", loss, batch_size=len(true_labels), prog_bar=False)
         self.log(
             f"{stage}/accuracy", acc, batch_size=len(true_labels), prog_bar=True
         )

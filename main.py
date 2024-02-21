@@ -19,7 +19,7 @@ def get_dataset(
 ):
     if dataset_type == DatasetType.NODE_HOMO:
         datamodule = PlanetoidDataset(
-            PlanetoidDatasetType[dataset_name], batch_size
+            PlanetoidDatasetType[dataset_name]
         )
     elif dataset_type == DatasetType.NODE_HETERO:
         datamodule = HeteroDataset(

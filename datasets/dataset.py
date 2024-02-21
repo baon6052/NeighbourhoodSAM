@@ -68,6 +68,7 @@ class PlanetoidDatasetType(Enum):
 
 class PlanetoidDataset(Dataset):
     def __init__(self, name: PlanetoidDatasetType):
+        super().__init__()
         self.dataset = Planetoid(root="./datasets", name=name.value)
         self.num_features = self.dataset.num_features
         self.num_classes = self.dataset.num_classes
@@ -84,6 +85,7 @@ class HeteroDatasetType(Enum):
 
 class SelectFoldTransform(BaseTransform):
     def __init__(self, fold_idx: int = 0):
+        super().__init__()
         self.fold_idx = fold_idx
 
     def forward(self, data):

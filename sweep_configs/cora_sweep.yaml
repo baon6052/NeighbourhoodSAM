@@ -2,7 +2,7 @@ program: main.py
 entity: r252_bel
 project: setup_tests
 
-name: MNIST-GCN
+name: CORA-GCN
 
 command:
 - ${env}
@@ -11,11 +11,11 @@ command:
 - --dataset_type
 - homo
 - --dataset_name
-- MNIST
+- CORA
 - --dataset_type
 - graph_homo
 - --graph_classification
-- true
+- false
 - ${args}
 
 metric:

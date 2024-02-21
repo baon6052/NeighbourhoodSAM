@@ -1,0 +1,5 @@
+program: main.py
+name: sweepdemo
+model: gcn
+dataset_type: homo
+dataset_name: pubmed

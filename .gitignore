@@ -2,7 +2,14 @@ datasets/Cora/
 datasets/Pubmed/
 datasets/CiteSeer/
 lightning_logs/
+datasets/CIFAR10/
+datasets/PATTERN/
+datasets/amazon_ratings/
+datasets/roman_empire/
+setup_tests/
 **__pycache__**
+wandb
 
 .idea/
 .vscode/
+.DS_Store

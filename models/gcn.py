@@ -2,23 +2,13 @@ from dataclasses import dataclass
 
 import lightning as L
 import torch
+from sklearn.metrics import roc_auc_score
 from torch import nn, optim
 from torch.nn import Linear
-from torch_geometric.nn import GCNConv
+from torch.nn.functional import elu, softmax
+from torch_geometric.nn import GCNConv, global_mean_pool
 
-from graph_sam import GraphSAM
-
-
-@dataclass
-class Args:
-    rho: float
-    radius: float
-    alpha: float
-    epoch_steps: int
-    gamma: float
-
-
-args = Args(rho=0.05, radius=0.05, alpha=0.99, epoch_steps=1, gamma=0.5)
+from sam import SAM
 
 
 class GCN(L.LightningModule):
@@ -26,80 +16,94 @@ class GCN(L.LightningModule):
         self,
         num_features: int,
         num_classes: int,
+        num_hidden_layers: int = 1,
+        num_hidden: int = 4,
         with_sam: bool = True,
+        graph_classification: bool = False,
+        seed=1234,
     ):
         super().__init__()
         if with_sam:
             self.automatic_optimization = False
 
         self.with_sam = with_sam
+        self.graph_classification = graph_classification
 
-        torch.manual_seed(1234)
-        self.conv1 = GCNConv(num_features, 4)
-        self.conv2 = GCNConv(4, 4)
-        self.conv3 = GCNConv(4, 2)
-        self.classifier = Linear(2, num_classes)
+        torch.manual_seed(seed)
+        self.conv1 = GCNConv(num_features, num_hidden)
 
-        self.batch_num = 0
+        self.hidden_layers = []
+
+        for _ in range(num_hidden_layers):
+            self.hidden_layers.append(GCNConv(num_hidden, num_hidden))
+
+        self.hidden_layers = nn.ModuleList(self.hidden_layers)
+
+        self.classifier = Linear(num_hidden, num_classes)
 
         self.criterion = nn.CrossEntropyLoss()
+        self.pool = global_mean_pool
 
-    def forward(self, x, edge_index):
+    def forward(self, x, edge_index, batch):
         h = self.conv1(x, edge_index)
-        h = h.tanh()
-        h = self.conv2(h, edge_index)
-        h = h.tanh()
-        h = self.conv3(h, edge_index)
-        h = h.tanh()
+        h = elu(h)
+
+        for hidden_layer in self.hidden_layers:
+            h = hidden_layer(h, edge_index)
+            h = elu(h)
+
+        if self.graph_classification:
+            h = self.pool(h, batch)
 
         out = self.classifier(h)
-        return out, h
+        return out
 
     def configure_optimizers(self):
         base_optimizer = optim.Adam
-        optimizer = GraphSAM(
-            params=self.parameters(), arg=args, base_optimizer=base_optimizer
-        )
 
         if self.with_sam:
+            optimizer = SAM(
+                params=self.parameters(), base_optimizer=base_optimizer, lr=0.01
+            )
             return optimizer
 
         return base_optimizer(self.parameters(), lr=0.01)
 
     def training_step(self, batch, batch_idx):
-        out, h = self.forward(batch.x, batch.edge_index)
+        x = batch.x
+        y = batch.y
+        edge_index = batch.edge_index
+
+        out = self.forward(x, edge_index, batch.batch)
         out = out.cpu()
         batch = batch.cpu()
 
-        loss = self.criterion(out[batch.train_mask], batch.y[batch.train_mask])
+        if self.graph_classification:
+            loss = self.criterion(out, y)
+        else:
+            train_mask = batch.train_mask
+            loss = self.criterion(out[train_mask], y[train_mask])
+
         self.log("train/loss", loss, prog_bar=True)
 
-        opt = self.optimizers()
-
-        x = batch.x
-        edge_index = batch.edge_index
-        train_mask = batch.train_mask
-
         def closure():
-            out, h = self.forward(x, edge_index)
+            out = self.forward(x, edge_index, batch.batch)
             out = out.cpu()
-            y = batch.y
 
-            loss = self.criterion(out[train_mask], y[train_mask])
+            if self.graph_classification:
+                loss = self.criterion(out, y)
+            else:
+                train_mask = batch.train_mask
+                loss = self.criterion(out[train_mask], y[train_mask])
+
             loss.backward()
             return loss
 
         if self.with_sam:
-            if self.batch_num == 0:
-                opt.optimizer.step(
-                    self.batch_num, self.batch_num, closure=closure, loss=loss
-                )
-            else:
-                opt.optimizer.step(
-                    self.batch_num, self.batch_num, closure=closure
-                )
-
-            self.batch_num += 1
+            opt = self.optimizers()
+            loss.backward()
+            opt.optimizer.step(closure)
+            opt.optimizer.zero_grad()
 
         return loss
 
@@ -110,20 +114,29 @@ class GCN(L.LightningModule):
         self._evaluate(batch, "test")
 
     def _evaluate(self, batch, stage: str):
-        out, h = self.forward(batch.x, batch.edge_index)
+        out = self.forward(batch.x, batch.edge_index, batch.batch)
         out = out.cpu()
         batch = batch.cpu()
 
-        node_mask = batch.val_mask
-        label_mask = batch.val_mask
+        if self.graph_classification:
+            pred_probs = softmax(out, dim=1).detach().numpy()
+            true_labels = batch.y.detach().numpy()
 
-        if stage == "test":
-            node_mask = batch.test_mask
-            label_mask = batch.test_mask
+        else:
+            node_mask = batch.val_mask
+            label_mask = batch.val_mask
 
-        pred = out.argmax(1)
+            if stage == "test":
+                node_mask = batch.test_mask
+                label_mask = batch.test_mask
 
-        # loss = self.criterion(out[node_mask], batch.y[label_mask])
-        acc = (pred[node_mask] == batch.y[label_mask]).float().mean()
-        print(f"{stage}_accuracy", acc)
-        self.log(f"{stage}_accuracy", acc, prog_bar=False)
+            pred_probs = softmax(out[node_mask], dim=1).detach().numpy()
+            true_labels = batch.y[label_mask].detach().numpy()
+
+        # Calculate accuracy
+        pred_labels = pred_probs.argmax(axis=1)
+        acc = (pred_labels == true_labels).mean()
+
+        # auc_score = roc_auc_score(true_labels, pred_probs, multi_class='ovr')
+
+        self.log(f"{stage}/accuracy", acc, prog_bar=True)

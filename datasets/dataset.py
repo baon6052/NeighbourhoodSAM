@@ -1,13 +1,29 @@
-from enum import Enum
+from enum import Enum, StrEnum, auto
 
 import lightning as L
-from torch_geometric.datasets import KarateClub, Planetoid
+from torch_geometric.data import Data
+from torch_geometric.datasets import (
+    GNNBenchmarkDataset,
+    HeterophilousGraphDataset,
+    KarateClub,
+    Planetoid,
+)
 from torch_geometric.loader.dataloader import DataLoader
+from torch_geometric.transforms.base_transform import BaseTransform
+
+
+class DatasetType(StrEnum):
+    NODE_HOMO = auto()
+    NODE_HETERO = auto()
+    GRAPH_HOMO = auto()
 
 
 class Dataset(L.LightningDataModule):
     def __init__(self):
+        super().__init__()
         self.dataset = None
+        self.num_features = None
+        self.num_classes = None
 
     def print_info(self):
         print(f"Number of graphs: {len(self.dataset)}")
@@ -39,6 +55,7 @@ class Dataset(L.LightningDataModule):
 
 class KarateClubDataset(Dataset):
     def __init__(self):
+        super().__init__()
         self.dataset = KarateClub()
         self.print_info()
 
@@ -52,4 +69,76 @@ class PlanetoidDatasetType(Enum):
 class PlanetoidDataset(Dataset):
     def __init__(self, name: PlanetoidDatasetType):
         self.dataset = Planetoid(root="./datasets", name=name.value)
+        self.num_features = self.dataset.num_features
+        self.num_classes = self.dataset.num_classes
         self.print_info()
+
+
+class HeteroDatasetType(Enum):
+    ROMAN = "Roman-empire"
+    AMAZON = "amazon_ratings"
+    MINESWEEPER = "minesweeper"
+    TOLOKERS = "tolokers"
+    QUESTIONS = "questions"
+
+
+class SelectFoldTransform(BaseTransform):
+    def __init__(self, fold_idx: int = 0):
+        self.fold_idx = fold_idx
+
+    def forward(self, data):
+        data.train_mask = data.train_mask[:, self.fold_idx]
+        data.val_mask = data.val_mask[:, self.fold_idx]
+        data.test_mask = data.test_mask[:, self.fold_idx]
+
+        return data
+
+
+class HeteroDataset(Dataset):
+    def __init__(self, name: HeteroDatasetType, fold_idx: int = 0):
+        super().__init__()
+        self.fold_idx = fold_idx
+        self.dataset: HeterophilousGraphDataset = HeterophilousGraphDataset(
+            root="./datasets",
+            name=name.value,
+            transform=SelectFoldTransform(fold_idx),
+        )
+        self.num_features = self.dataset.num_features
+        self.num_classes = self.dataset.num_classes
+        self.print_info()
+
+
+class GraphHomoDatasetType(Enum):
+    PATTERN = "PATTERN"
+    CLUSTER = "CLUSTER"
+    MNIST = "MNIST"
+    CIFAR10 = "CIFAR10"
+    TSP = "TSP"
+    CSL = "CSL"
+
+
+class GraphHomoDataset(Dataset):
+    def __init__(self, name: GraphHomoDatasetType, batch_size: int = 64):
+        super().__init__()
+        self.batch_size = batch_size
+        self.train_data: GNNBenchmarkDataset = GNNBenchmarkDataset(
+            root="./datasets", name=name.value, split="train"
+        )
+        self.val_data: GNNBenchmarkDataset = GNNBenchmarkDataset(
+            root="./datasets", name=name.value, split="val"
+        )
+        self.test_data: GNNBenchmarkDataset = GNNBenchmarkDataset(
+            root="./datasets", name=name.value, split="test"
+        )
+
+        self.num_features = self.train_data.num_node_features
+        self.num_classes = self.train_data.num_classes
+
+    def train_dataloader(self) -> DataLoader:
+        return DataLoader(self.train_data, batch_size=self.batch_size)
+
+    def val_dataloader(self) -> DataLoader:
+        return DataLoader(self.val_data, batch_size=self.batch_size)
+
+    def test_dataloader(self) -> DataLoader:
+        return DataLoader(self.test_data, batch_size=self.batch_size)

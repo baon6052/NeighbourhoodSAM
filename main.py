@@ -38,7 +38,7 @@ def get_dataset(
     type=click.Choice(
         ["node_homo", "node_hetero", "graph_homo"], case_sensitive=True
     ),
-    default="homo",
+    default="node_homo",
     help="The dataset to use. Options are homo and hetero",
 )
 @click.option("--dataset_name", default="CORA")

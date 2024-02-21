@@ -9,11 +9,9 @@ command:
 - ${interpreter}
 - ${program}
 - --dataset_type
-- homo
+- node_homo
 - --dataset_name
 - CORA
-- --dataset_type
-- graph_homo
 - --graph_classification
 - false
 - ${args}

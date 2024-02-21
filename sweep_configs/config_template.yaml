@@ -8,13 +8,12 @@ command:
 - ${env}
 - ${interpreter}
 - ${program}
-- -- model
-- gcn
 - --dataset_type
 - homo
 - --dataset_name
 - CIFAR10
-- --dataset_type graph_homo 
+- --dataset_type 
+- graph_homo 
 - --graph_classification 
 - true 
 - ${args}

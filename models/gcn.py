@@ -75,8 +75,8 @@ class GCN(L.LightningModule):
         edge_index = batch.edge_index
 
         out = self.forward(x, edge_index, batch.batch)
-        out = out.cpu()
-        batch = batch.cpu()
+        out = out #.cpu()
+        batch = batch #.cpu()
 
         if self.graph_classification:
             loss = self.criterion(out, y)
@@ -88,7 +88,7 @@ class GCN(L.LightningModule):
 
         def closure():
             out = self.forward(x, edge_index, batch.batch)
-            out = out.cpu()
+            out = out #.cpu()
 
             if self.graph_classification:
                 loss = self.criterion(out, y)

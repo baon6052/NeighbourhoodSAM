@@ -2,23 +2,24 @@ program: main.py
 entity: r252_bel
 project: setup_tests
 
-name: CORA-GCN
+name: cluster_sweep
 
 command:
 - ${env}
 - ${interpreter}
 - ${program}
-- --dataset_type
-- node_homo
 - --dataset_name
-- CORA
+- CLUSTER
+- --dataset_type
+- graph_homo
 - --graph_classification
 - false
 - ${args}
 
 metric:
-  goal: minimize
-  name: test/loss
+  goal: maximize
+  name: test/accuracy
+
 
 method: grid
 parameters:

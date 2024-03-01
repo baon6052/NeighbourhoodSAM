@@ -1,7 +1,6 @@
 from enum import Enum, StrEnum, auto
 
 import lightning as L
-from torch_geometric.data import Data
 from torch_geometric.datasets import (
     GNNBenchmarkDataset,
     HeterophilousGraphDataset,
@@ -69,7 +68,7 @@ class PlanetoidDatasetType(Enum):
 class PlanetoidDataset(Dataset):
     def __init__(self, name: PlanetoidDatasetType):
         super().__init__()
-        self.dataset = Planetoid(root="./datasets", name=name.value)
+        self.dataset = Planetoid(root="data", name=name.value, split='full')
         self.num_features = self.dataset.num_features
         self.num_classes = self.dataset.num_classes
         self.print_info()
@@ -101,7 +100,7 @@ class HeteroDataset(Dataset):
         super().__init__()
         self.fold_idx = fold_idx
         self.dataset: HeterophilousGraphDataset = HeterophilousGraphDataset(
-            root="./datasets",
+            root="data",
             name=name.value,
             transform=SelectFoldTransform(fold_idx),
         )
@@ -124,13 +123,13 @@ class GraphHomoDataset(Dataset):
         super().__init__()
         self.batch_size = batch_size
         self.train_data: GNNBenchmarkDataset = GNNBenchmarkDataset(
-            root="./datasets", name=name.value, split="train"
+            root="data", name=name.value, split="train"
         )
         self.val_data: GNNBenchmarkDataset = GNNBenchmarkDataset(
-            root="./datasets", name=name.value, split="val"
+            root="data", name=name.value, split="val"
         )
         self.test_data: GNNBenchmarkDataset = GNNBenchmarkDataset(
-            root="./datasets", name=name.value, split="test"
+            root="data", name=name.value, split="test"
         )
 
         self.num_features = self.train_data.num_node_features

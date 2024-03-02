@@ -2,7 +2,7 @@ program: main.py
 entity: r252_bel
 project: setup_tests
 
-name: MNIST_sweep
+name: MNIST-GCN
 
 command:
 - ${env}

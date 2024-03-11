@@ -95,6 +95,7 @@ def main(
         max_epochs=300,
         fast_dev_run=False,
         logger=wandb_logger,
+        accelerator="auto",
         callbacks=callbacks,
     )
 

@@ -4,6 +4,7 @@ from torch import nn, optim
 from torch.nn import Linear
 from torch.nn.functional import elu, softmax
 from torch_geometric.nn import GCNConv, global_mean_pool
+from torchmetrics import AUROC
 
 from sam import SAM
 
@@ -42,6 +43,8 @@ class GCN(L.LightningModule):
 
         self.criterion = nn.CrossEntropyLoss()
         self.pool = global_mean_pool
+
+        self.roc_auc_score = AUROC(task="multiclass", num_classes=num_classes)
 
     def forward(self, x, edge_index, batch):
         h = self.conv1(x, edge_index)
@@ -143,7 +146,11 @@ class GCN(L.LightningModule):
         pred_labels = pred_probs.argmax(axis=1)
         acc = (pred_labels == true_labels).mean()
 
-        # auc_score = roc_auc_score(true_labels, pred_probs, multi_class='ovr')
+        pred_probs = torch.tensor(pred_probs, dtype=torch.float32)  # Ensure correct data type
+        true_labels = torch.tensor(true_labels,dtype=torch.long)  # Ensure correct data type, assuming true_labels are integer class labels
+
+        auc_score = self.roc_auc_score(pred_probs, true_labels)
+        self.log(f"{stage}/auc_score", auc_score, batch_size=len(true_labels), prog_bar=False)
         self.log(f"{stage}/loss", loss, batch_size=len(true_labels), prog_bar=False)
         self.log(
             f"{stage}/accuracy", acc, batch_size=len(true_labels), prog_bar=True

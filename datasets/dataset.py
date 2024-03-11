@@ -167,7 +167,6 @@ class GraphHomoDatasetType(Enum):
     CLUSTER = "CLUSTER"
     MNIST = "MNIST"
     CIFAR10 = "CIFAR10"
-    TSP = "TSP"
     CSL = "CSL"
 
 

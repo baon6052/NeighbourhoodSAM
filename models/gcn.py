@@ -59,6 +59,14 @@ class GCN(L.LightningModule):
 
         out = self.classifier(h)
         return out
+    
+    def compute_loss(self, out, y, batch):
+        if self.graph_classification:
+            loss = self.criterion(out, y)
+        else:
+            train_mask = batch.train_mask
+            loss = self.criterion(out[train_mask], y[train_mask])
+        return loss
 
     def configure_optimizers(self):
         if self.base_optimizer == "sgd":
@@ -85,11 +93,7 @@ class GCN(L.LightningModule):
         out = out #.cpu()
         batch = batch #.cpu()
 
-        if self.graph_classification:
-            loss = self.criterion(out, y)
-        else:
-            train_mask = batch.train_mask
-            loss = self.criterion(out[train_mask], y[train_mask])
+        loss = self.compute_loss(out, y, batch)
 
         self.log("train/loss", loss, batch_size=len(y), prog_bar=True)
 

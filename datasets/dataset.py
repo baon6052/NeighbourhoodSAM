@@ -209,7 +209,7 @@ def get_dataset(
     if dataset_type == DatasetType.NODE_HOMO:
         datamodule = PlanetoidDataset(
             PlanetoidDatasetType[dataset_name], batch_size=batch_size,
-            use_neighbour_loader=neighbour_loader, num_neighbours=num_neighbours
+            use_neighbour_loader=neighbour_loader, num_neighbour=num_neighbours
         )
     elif dataset_type == DatasetType.NODE_HETERO:
         datamodule = HeteroDataset(

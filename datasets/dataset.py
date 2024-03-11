@@ -7,7 +7,7 @@ from torch_geometric.datasets import (
     KarateClub,
     Planetoid,
 )
-from torch_geometric.loader.dataloader import DataLoader
+from torch_geometric.loader import DataLoader, NeighborLoader
 from torch_geometric.transforms.base_transform import BaseTransform
 
 
@@ -52,6 +52,46 @@ class Dataset(L.LightningDataModule):
         return DataLoader(self.dataset)
 
 
+class NodeClassificationDataset(L.LightningDataModule):
+    def __init__(self, batch_size: int):
+        super().__init__()
+        self.dataset = None
+        self.num_features = None
+        self.num_classes = None
+        self.batch_size = batch_size
+
+    def print_info(self):
+        print(f"Number of graphs: {len(self.dataset)}")
+        print(f"Number of features: {self.dataset.num_features}")
+        print(f"Number of classes: {self.dataset.num_classes}")
+
+        data = self.dataset[0]
+        print(f"Number of nodes: {data.num_nodes}")
+        print(f"Number of edges: {data.num_edges}")
+        print(f"Average node degree: {data.num_edges / data.num_nodes:.2f}")
+        print(f"Number of training nodes: {data.train_mask.sum()}")
+        print(
+            f"Training node "
+            f"label rate: {int(data.train_mask.sum()) / data.num_nodes:.2f}"
+        )
+        print(f"Has isolated nodes: {data.has_isolated_nodes()}")
+        print(f"Has self-loops: {data.has_self_loops()}")
+        print(f"Is undirected: {data.is_undirected()}")
+
+    def train_dataloader(self) -> DataLoader:
+        return NeighborLoader(self.dataset, num_neighbors=[10, 10],
+                              batch_size=self.batch_size)
+
+    def val_dataloader(self) -> DataLoader:
+        return NeighborLoader(self.dataset, num_neighbors=[10, 10],
+                              batch_size=self.batch_size)
+
+    def test_dataloader(self) -> DataLoader:
+        return NeighborLoader(self.dataset, num_neighbors=[10, 10],
+                              batch_size=self.batch_size)
+
+
+
 class KarateClubDataset(Dataset):
     def __init__(self):
         super().__init__()
@@ -65,9 +105,9 @@ class PlanetoidDatasetType(Enum):
     PUBMED = "PubMed"
 
 
-class PlanetoidDataset(Dataset):
-    def __init__(self, name: PlanetoidDatasetType):
-        super().__init__()
+class PlanetoidDataset(NodeClassificationDataset):
+    def __init__(self, name: PlanetoidDatasetType, batch_size: int = 64):
+        super().__init__(batch_size)
         self.dataset = Planetoid(root="data", name=name.value, split='full')
         self.num_features = self.dataset.num_features
         self.num_classes = self.dataset.num_classes

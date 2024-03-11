@@ -36,6 +36,11 @@ parameters:
     - 64
     - 128
 
+  base_optimizer:
+    distribution: categorical
+    values:
+      - adam
+      - sgd
 
   num_layers:
     distribution: categorical
@@ -57,5 +62,3 @@ parameters:
     - 0
     - 1
     - 2
-    - 3
-    - 4

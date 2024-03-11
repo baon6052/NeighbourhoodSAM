@@ -11,6 +11,7 @@ from datasets.dataset import (
     PlanetoidDataset,
     PlanetoidDatasetType,
 )
+from utilities.wandb_utilities import checkpoint_callback
 from models.gcn import GCN
 
 
@@ -87,13 +88,14 @@ def main(
     wandb_logger = None
 
     if use_wandb:
-        wandb_logger = WandbLogger(project="setup_tests", entity="r252_bel")
+        wandb_logger = WandbLogger(project="setup_tests", entity="r252_bel", log_model=True)
 
     trainer = Trainer(
         limit_train_batches=100,
         max_epochs=300,
         fast_dev_run=False,
         logger=wandb_logger,
+        callbacks=[checkpoint_callback]
     )
 
     trainer.fit(model, datamodule=datamodule)

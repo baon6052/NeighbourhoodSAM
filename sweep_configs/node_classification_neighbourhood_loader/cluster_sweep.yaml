@@ -14,6 +14,7 @@ command:
 - graph_homo
 - --graph_classification
 - false
+- --neighbour_loader
 - ${args}
 
 metric:
@@ -65,3 +66,12 @@ parameters:
     - 0
     - 1
     - 2
+
+  num_neighbour:
+    distribution: categorical
+    values:
+      - '1,1'
+      - '2,2'
+      - '4,4'
+      - '8,8'
+      - '16,16'

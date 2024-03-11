@@ -1,4 +1,5 @@
 from enum import Enum, StrEnum, auto
+from typing import Optional
 
 import lightning as L
 from torch_geometric.datasets import (
@@ -53,7 +54,7 @@ class Dataset(L.LightningDataModule):
 
 
 class NodeClassificationDataset(L.LightningDataModule):
-    def __init__(self, batch_size: int, num_neighbour: list[int],
+    def __init__(self, batch_size: int, num_neighbour: Optional[list[int]] = None,
                  use_neighbour_loader: bool = True):
         super().__init__()
         self.dataset = None
@@ -61,7 +62,10 @@ class NodeClassificationDataset(L.LightningDataModule):
         self.num_classes = None
         self.batch_size = batch_size
         self.use_neighbour_loader = use_neighbour_loader
-        self.num_neighbour = num_neighbour
+        if num_neighbour is None:
+            self.num_neighbour = [10, 10]
+        else:
+            self.num_neighbour = num_neighbour
 
     def print_info(self):
         print(f"Number of graphs: {len(self.dataset)}")
@@ -83,21 +87,21 @@ class NodeClassificationDataset(L.LightningDataModule):
 
     def train_dataloader(self) -> DataLoader:
         if self.use_neighbour_loader:
-            return NeighborLoader(self.dataset, num_neighbors=self.num_neighbour,
+            return NeighborLoader(self.dataset.data, num_neighbors=self.num_neighbour,
                                   batch_size=self.batch_size)
         return DataLoader(self.dataset)
 
     def val_dataloader(self) -> DataLoader:
         if self.use_neighbour_loader:
-            return NeighborLoader(self.dataset, num_neighbors=self.num_neighbour,
+            return NeighborLoader(self.dataset.data, num_neighbors=self.num_neighbour,
                                   batch_size=self.batch_size)
-        return DataLoader(self.dataset)
+        return DataLoader(self.dataset.data)
 
     def test_dataloader(self) -> DataLoader:
         if self.use_neighbour_loader:
-            return NeighborLoader(self.dataset, num_neighbors=self.num_neighbour,
+            return NeighborLoader(self.dataset.data, num_neighbors=self.num_neighbour,
                                   batch_size=self.batch_size)
-        return DataLoader(self.dataset)
+        return DataLoader(self.dataset.data)
 
 
 

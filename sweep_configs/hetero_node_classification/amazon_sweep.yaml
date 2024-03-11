@@ -9,7 +9,7 @@ command:
 - ${interpreter}
 - ${program}
 - --dataset_name
-- amazon_ratings
+- AMAZON
 - --dataset_type
 - node_hetero
 - --graph_classification

@@ -9,7 +9,7 @@ command:
 - ${interpreter}
 - ${program}
 - --dataset_name
-- minesweeper
+- MINESWEEPER
 - --dataset_type
 - node_hetero
 - --graph_classification

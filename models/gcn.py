@@ -90,8 +90,6 @@ class GCN(L.LightningModule):
         edge_index = batch.edge_index
 
         out = self.forward(x, edge_index, batch.batch)
-        out = out #.cpu()
-        batch = batch #.cpu()
 
         loss = self.compute_loss(out, y, batch)
 
@@ -99,7 +97,6 @@ class GCN(L.LightningModule):
 
         def closure():
             out = self.forward(x, edge_index, batch.batch)
-            out = out #.cpu()
 
             if self.graph_classification:
                 loss = self.criterion(out, y)
@@ -150,8 +147,8 @@ class GCN(L.LightningModule):
         pred_labels = pred_probs.argmax(axis=1)
         acc = (pred_labels == true_labels).mean()
 
-        pred_probs = torch.tensor(pred_probs, dtype=torch.float32)  # Ensure correct data type
-        true_labels = torch.tensor(true_labels,dtype=torch.long)  # Ensure correct data type, assuming true_labels are integer class labels
+        pred_probs = torch.tensor(pred_probs, dtype=torch.float32)
+        true_labels = torch.tensor(true_labels,dtype=torch.long)
 
         auc_score = self.roc_auc_score(pred_probs, true_labels)
         self.log(f"{stage}/auc_score", auc_score, batch_size=len(true_labels), prog_bar=False)

@@ -12,7 +12,7 @@ from datasets.dataset import (
     PlanetoidDatasetType,
 )
 from models.gcn import GCN
-from utilities.wandb_utilities import checkpoint_callback
+from utilities.wandb_utilities import callbacks
 
 
 def get_dataset(
@@ -110,7 +110,7 @@ def main(
         max_epochs=300,
         fast_dev_run=False,
         logger=wandb_logger,
-        callbacks=[checkpoint_callback]
+        callbacks=callbacks
     )
 
     trainer.fit(model, datamodule=datamodule)

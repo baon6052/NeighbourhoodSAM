@@ -2,7 +2,7 @@ program: main.py
 entity: r252_bel
 project: setup_tests
 
-name: cluster_sweep
+name: Cluster-GCN
 
 command:
 - ${env}

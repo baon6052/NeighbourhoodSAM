@@ -2,7 +2,7 @@ program: main.py
 entity: r252_bel
 project: setup_tests
 
-name: MNIST-GCN
+name: Amazon-GCN
 
 command:
 - ${env}

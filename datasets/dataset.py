@@ -119,8 +119,11 @@ class PlanetoidDatasetType(Enum):
 
 
 class PlanetoidDataset(NodeClassificationDataset):
-    def __init__(self, name: PlanetoidDatasetType, batch_size: int = 64):
-        super().__init__(batch_size)
+    def __init__(self, name: PlanetoidDatasetType, batch_size: int = 64,
+                 num_neighbour: Optional[list[int]] = None,
+                 use_neighbour_loader: bool = True):
+        super().__init__(batch_size=batch_size, num_neighbour=num_neighbour,
+                         use_neighbour_loader=use_neighbour_loader)
         self.dataset = Planetoid(root="data", name=name.value, split='full')
         self.num_features = self.dataset.num_features
         self.num_classes = self.dataset.num_classes

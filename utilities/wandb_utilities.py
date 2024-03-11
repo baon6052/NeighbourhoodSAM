@@ -1,4 +1,4 @@
-from pytorch_lightning.callbacks import ModelCheckpoint
+from lightning.pytorch.callbacks import ModelCheckpoint
 
 # Setup the model checkpoint callback
 checkpoint_callback = ModelCheckpoint(

@@ -33,7 +33,7 @@ def process_items(ctx, param, value):
 @click.option("--seed", type=int, default=1234)
 @click.option("--use_wandb", type=bool, default=True)
 @click.option("--neighbour_loader/--no_neighbour_loader", default=False)
-@click.option("--num_neighbours", callback=process_items)
+@click.option("--num_neighbour", callback=process_items, default='10,10')
 @click.option(
     "--base_optimizer",
     type=click.Choice(
@@ -42,7 +42,6 @@ def process_items(ctx, param, value):
     default="adam",
     help="The base optimizer to use. Options are adam and sgd. Can be used in conjunction with SAM",
 )
-
 def main(
     dataset_type: str,
     dataset_name: str,
@@ -54,12 +53,12 @@ def main(
     with_sam: bool,
     seed: int,
     use_wandb: bool,
-        base_optimizer: str,
-        neighbour_loader: bool,
-        num_neighbours: list[int]
+    base_optimizer: str,
+    neighbour_loader: bool,
+    num_neighbour: list[int]
 ):
     datamodule = get_dataset(dataset_type, dataset_name, fold_idx, batch_size,
-                             neighbour_loader, num_neighbours)
+                             neighbour_loader, num_neighbour)
     model = GCN(
         num_features=datamodule.num_features,
         num_classes=datamodule.num_classes,

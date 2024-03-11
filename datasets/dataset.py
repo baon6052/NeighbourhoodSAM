@@ -95,13 +95,13 @@ class NodeClassificationDataset(L.LightningDataModule):
         if self.use_neighbour_loader:
             return NeighborLoader(self.dataset.data, num_neighbors=self.num_neighbour,
                                   batch_size=self.batch_size)
-        return DataLoader(self.dataset.data)
+        return DataLoader(self.dataset)
 
     def test_dataloader(self) -> DataLoader:
         if self.use_neighbour_loader:
             return NeighborLoader(self.dataset.data, num_neighbors=self.num_neighbour,
                                   batch_size=self.batch_size)
-        return DataLoader(self.dataset.data)
+        return DataLoader(self.dataset)
 
 
 

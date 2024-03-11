@@ -63,7 +63,7 @@ class GCN(L.LightningModule):
         elif self.base_optimizer == "adam":
             base_optimizer = optim.Adam
         else:
-            raise ValueError(f"{base_optimizer} is an invalid base_optimizer. Must be 'sgd' or 'adam'")
+            raise ValueError(f"{self.base_optimizer} is an invalid base_optimizer. Must be 'sgd' or 'adam'")
 
         if self.with_sam:
             optimizer = SAM(

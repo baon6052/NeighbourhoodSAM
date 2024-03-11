@@ -17,9 +17,11 @@ class GCN(L.LightningModule):
         num_hidden: int = 4,
         with_sam: bool = True,
         graph_classification: bool = False,
+        base_optimizer: str = "adam", # Can be "sgd" or "adam"
         seed=1234,
     ):
         super().__init__()
+        self.base_optimizer = base_optimizer
         if with_sam:
             self.automatic_optimization = False
 
@@ -56,7 +58,12 @@ class GCN(L.LightningModule):
         return out
 
     def configure_optimizers(self):
-        base_optimizer = optim.Adam
+        if self.base_optimizer == "sgd":
+            base_optimizer = optim.SGD
+        elif self.base_optimizer == "adam":
+            base_optimizer = optim.Adam
+        else:
+            raise ValueError(f"{base_optimizer} is an invalid base_optimizer. Must be 'sgd' or 'adam'")
 
         if self.with_sam:
             optimizer = SAM(

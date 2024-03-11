@@ -50,6 +50,15 @@ def get_dataset(
 @click.option("--with_sam", type=bool, default=True)
 @click.option("--seed", type=int, default=1234)
 @click.option("--use_wandb", type=bool, default=True)
+@click.option(
+    "--base_optimizer",
+    type=click.Choice(
+        ["adam", "sgd"], case_sensitive=True
+    ),
+    default="adam",
+    help="The base optimizer to use. Options are adam and sgd. Can be used in conjunction with SAM",
+)
+
 def main(
     dataset_type: str,
     dataset_name: str,
@@ -61,6 +70,7 @@ def main(
     with_sam: bool,
     seed: int,
     use_wandb: bool,
+    base_optimizer: str
 ):
     datamodule = get_dataset(dataset_type, dataset_name, fold_idx, batch_size)
     model = GCN(
@@ -71,6 +81,7 @@ def main(
         graph_classification=graph_classification,
         with_sam=with_sam,
         seed=seed,
+        base_optimizer=base_optimizer,
     )
 
     wandb_logger = None

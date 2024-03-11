@@ -53,12 +53,15 @@ class Dataset(L.LightningDataModule):
 
 
 class NodeClassificationDataset(L.LightningDataModule):
-    def __init__(self, batch_size: int):
+    def __init__(self, batch_size: int, num_neighbour: list[int],
+                 use_neighbour_loader: bool = True):
         super().__init__()
         self.dataset = None
         self.num_features = None
         self.num_classes = None
         self.batch_size = batch_size
+        self.use_neighbour_loader = use_neighbour_loader
+        self.num_neighbour = num_neighbour
 
     def print_info(self):
         print(f"Number of graphs: {len(self.dataset)}")
@@ -79,16 +82,22 @@ class NodeClassificationDataset(L.LightningDataModule):
         print(f"Is undirected: {data.is_undirected()}")
 
     def train_dataloader(self) -> DataLoader:
-        return NeighborLoader(self.dataset, num_neighbors=[10, 10],
-                              batch_size=self.batch_size)
+        if self.use_neighbour_loader:
+            return NeighborLoader(self.dataset, num_neighbors=self.num_neighbour,
+                                  batch_size=self.batch_size)
+        return DataLoader(self.dataset)
 
     def val_dataloader(self) -> DataLoader:
-        return NeighborLoader(self.dataset, num_neighbors=[10, 10],
-                              batch_size=self.batch_size)
+        if self.use_neighbour_loader:
+            return NeighborLoader(self.dataset, num_neighbors=self.num_neighbour,
+                                  batch_size=self.batch_size)
+        return DataLoader(self.dataset)
 
     def test_dataloader(self) -> DataLoader:
-        return NeighborLoader(self.dataset, num_neighbors=[10, 10],
-                              batch_size=self.batch_size)
+        if self.use_neighbour_loader:
+            return NeighborLoader(self.dataset, num_neighbors=self.num_neighbour,
+                                  batch_size=self.batch_size)
+        return DataLoader(self.dataset)
 
 
 

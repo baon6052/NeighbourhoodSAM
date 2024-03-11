@@ -2,37 +2,9 @@ import click
 from lightning import Trainer
 from lightning.pytorch.loggers import WandbLogger
 
-from datasets.dataset import (
-    DatasetType,
-    GraphHomoDataset,
-    GraphHomoDatasetType,
-    HeteroDataset,
-    HeteroDatasetType,
-    PlanetoidDataset,
-    PlanetoidDatasetType,
-)
+from datasets.dataset import get_dataset
 from models.gcn import GCN
 from utilities.wandb_utilities import callbacks
-
-
-def get_dataset(
-        dataset_type: str, dataset_name: str, fold_idx: int, batch_size: int,
-        neighbour_loader: bool, num_neighbours: list[int]
-):
-    if dataset_type == DatasetType.NODE_HOMO:
-        datamodule = PlanetoidDataset(
-            PlanetoidDatasetType[dataset_name], batch_size=batch_size,
-            use_neighbour_loader=neighbour_loader, num_neighbours=num_neighbours
-        )
-    elif dataset_type == DatasetType.NODE_HETERO:
-        datamodule = HeteroDataset(
-            HeteroDatasetType[dataset_name], fold_idx=fold_idx
-        )
-    elif dataset_type == DatasetType.GRAPH_HOMO:
-        datamodule = GraphHomoDataset(
-            GraphHomoDatasetType[dataset_name], batch_size
-        )
-    return datamodule
 
 
 def process_items(ctx, param, value):

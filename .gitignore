@@ -6,6 +6,7 @@ datasets/CIFAR10/
 datasets/PATTERN/
 datasets/amazon_ratings/
 datasets/roman_empire/
+data/
 setup_tests/
 **__pycache__**
 wandb

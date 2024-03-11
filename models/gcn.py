@@ -4,6 +4,7 @@ from torch import nn, optim
 from torch.nn import Linear
 from torch.nn.functional import elu, softmax
 from torch_geometric.nn import GCNConv, global_mean_pool
+from torchmetrics import AUROC
 
 from sam import SAM
 
@@ -43,6 +44,8 @@ class GCN(L.LightningModule):
         self.criterion = nn.CrossEntropyLoss()
         self.pool = global_mean_pool
 
+        self.roc_auc_score = AUROC(task="multiclass", num_classes=num_classes)
+
     def forward(self, x, edge_index, batch):
         h = self.conv1(x, edge_index)
         h = elu(h)
@@ -56,6 +59,14 @@ class GCN(L.LightningModule):
 
         out = self.classifier(h)
         return out
+    
+    def compute_loss(self, out, y, batch):
+        if self.graph_classification:
+            loss = self.criterion(out, y)
+        else:
+            train_mask = batch.train_mask
+            loss = self.criterion(out[train_mask], y[train_mask])
+        return loss
 
     def configure_optimizers(self):
         if self.base_optimizer == "sgd":
@@ -63,7 +74,7 @@ class GCN(L.LightningModule):
         elif self.base_optimizer == "adam":
             base_optimizer = optim.Adam
         else:
-            raise ValueError(f"{base_optimizer} is an invalid base_optimizer. Must be 'sgd' or 'adam'")
+            raise ValueError(f"{self.base_optimizer} is an invalid base_optimizer. Must be 'sgd' or 'adam'")
 
         if self.with_sam:
             optimizer = SAM(
@@ -82,11 +93,7 @@ class GCN(L.LightningModule):
         out = out #.cpu()
         batch = batch #.cpu()
 
-        if self.graph_classification:
-            loss = self.criterion(out, y)
-        else:
-            train_mask = batch.train_mask
-            loss = self.criterion(out[train_mask], y[train_mask])
+        loss = self.compute_loss(out, y, batch)
 
         self.log("train/loss", loss, batch_size=len(y), prog_bar=True)
 
@@ -143,7 +150,11 @@ class GCN(L.LightningModule):
         pred_labels = pred_probs.argmax(axis=1)
         acc = (pred_labels == true_labels).mean()
 
-        # auc_score = roc_auc_score(true_labels, pred_probs, multi_class='ovr')
+        pred_probs = torch.tensor(pred_probs, dtype=torch.float32)  # Ensure correct data type
+        true_labels = torch.tensor(true_labels,dtype=torch.long)  # Ensure correct data type, assuming true_labels are integer class labels
+
+        auc_score = self.roc_auc_score(pred_probs, true_labels)
+        self.log(f"{stage}/auc_score", auc_score, batch_size=len(true_labels), prog_bar=False)
         self.log(f"{stage}/loss", loss, batch_size=len(true_labels), prog_bar=False)
         self.log(
             f"{stage}/accuracy", acc, batch_size=len(true_labels), prog_bar=True

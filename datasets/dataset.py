@@ -88,18 +88,21 @@ class NodeClassificationDataset(L.LightningDataModule):
     def train_dataloader(self) -> DataLoader:
         if self.use_neighbour_loader:
             return NeighborLoader(self.dataset.data, num_neighbors=self.num_neighbour,
+                                  input_nodes=self.dataset.data.train_mask,
                                   batch_size=self.batch_size)
         return DataLoader(self.dataset)
 
     def val_dataloader(self) -> DataLoader:
         if self.use_neighbour_loader:
             return NeighborLoader(self.dataset.data, num_neighbors=self.num_neighbour,
+                                  input_nodes=self.dataset.data.val_mask,
                                   batch_size=self.batch_size)
         return DataLoader(self.dataset)
 
     def test_dataloader(self) -> DataLoader:
         if self.use_neighbour_loader:
             return NeighborLoader(self.dataset.data, num_neighbors=self.num_neighbour,
+                                  input_nodes=self.dataset.data.test_mask,
                                   batch_size=self.batch_size)
         return DataLoader(self.dataset)
 

@@ -1,10 +1,9 @@
 import click
 from lightning import Trainer
-from lightning.pytorch.loggers import WandbLogger
-
 from datasets.dataset import get_dataset
 from models.gcn import GCN
 from utilities.wandb_utilities import callbacks
+from lightning.pytorch.loggers import WandbLogger
 
 
 def process_items(ctx, param, value):

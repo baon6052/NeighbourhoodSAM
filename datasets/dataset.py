@@ -2,6 +2,7 @@ from enum import Enum, StrEnum, auto
 from typing import Optional
 
 import lightning as L
+from torch_geometric.data import Data
 from torch_geometric.datasets import (
     GNNBenchmarkDataset,
     HeterophilousGraphDataset,
@@ -54,7 +55,7 @@ class Dataset(L.LightningDataModule):
 
 
 class NodeClassificationDataset(L.LightningDataModule):
-    def __init__(self, batch_size: int, num_neighbour: Optional[list[int]] = None,
+    def __init__(self, batch_size: int, num_neighbour: int = 4,
                  use_neighbour_loader: bool = True):
         super().__init__()
         self.dataset = None
@@ -87,21 +88,25 @@ class NodeClassificationDataset(L.LightningDataModule):
 
     def train_dataloader(self) -> DataLoader:
         if self.use_neighbour_loader:
-            return NeighborLoader(self.dataset.data, num_neighbors=self.num_neighbour,
+            return NeighborLoader(self.dataset.data,
+                                  num_neighbors=[-1] * self.num_neighbour,
                                   input_nodes=self.dataset.data.train_mask,
                                   batch_size=self.batch_size)
         return DataLoader(self.dataset)
 
     def val_dataloader(self) -> DataLoader:
         if self.use_neighbour_loader:
-            return NeighborLoader(self.dataset.data, num_neighbors=self.num_neighbour,
+            print(self.dataset.data)
+            return NeighborLoader(self.dataset.data,
+                                  num_neighbors=[-1] * self.num_neighbour,
                                   input_nodes=self.dataset.data.val_mask,
                                   batch_size=self.batch_size)
         return DataLoader(self.dataset)
 
     def test_dataloader(self) -> DataLoader:
         if self.use_neighbour_loader:
-            return NeighborLoader(self.dataset.data, num_neighbors=self.num_neighbour,
+            return NeighborLoader(self.dataset.data,
+                                  num_neighbors=[-1] * self.num_neighbour,
                                   input_nodes=self.dataset.data.test_mask,
                                   batch_size=self.batch_size)
         return DataLoader(self.dataset)
@@ -146,26 +151,50 @@ class SelectFoldTransform(BaseTransform):
         super().__init__()
         self.fold_idx = fold_idx
 
-    def forward(self, data):
+    def forward(self, data: Data):
         data.train_mask = data.train_mask[:, self.fold_idx]
         data.val_mask = data.val_mask[:, self.fold_idx]
         data.test_mask = data.test_mask[:, self.fold_idx]
-
         return data
 
 
-class HeteroDataset(Dataset):
-    def __init__(self, name: HeteroDatasetType, fold_idx: int = 0):
-        super().__init__()
+class HeteroDataset(NodeClassificationDataset):
+    def __init__(self, name: HeteroDatasetType, fold_idx: int = 0,
+                 use_neighbour_loader: bool = True, batch_size: int = 32,
+                 num_neighbours: int = 4):
+        super().__init__(use_neighbour_loader=use_neighbour_loader,
+                         batch_size=batch_size, num_neighbour=num_neighbours)
         self.fold_idx = fold_idx
         self.dataset: HeterophilousGraphDataset = HeterophilousGraphDataset(
             root="data",
             name=name.value,
-            transform=SelectFoldTransform(fold_idx),
+            transform=SelectFoldTransform(fold_idx)
         )
+        self.data = self.dataset[0]
         self.num_features = self.dataset.num_features
         self.num_classes = self.dataset.num_classes
         self.print_info()
+
+    def train_dataloader(self) -> DataLoader:
+        if self.use_neighbour_loader:
+            return NeighborLoader(self.data, num_neighbors=[-1] * self.num_neighbour,
+                                  input_nodes=self.data.train_mask,
+                                  batch_size=self.batch_size)
+        return DataLoader(self.dataset)
+
+    def val_dataloader(self) -> DataLoader:
+        if self.use_neighbour_loader:
+            return NeighborLoader(self.data, num_neighbors=[-1] * self.num_neighbour,
+                                  input_nodes=self.data.val_mask,
+                                  batch_size=self.batch_size)
+        return DataLoader(self.dataset)
+
+    def test_dataloader(self) -> DataLoader:
+        if self.use_neighbour_loader:
+            return NeighborLoader(self.data, num_neighbors=[-1] * self.num_neighbour,
+                                  input_nodes=self.data.test_mask,
+                                  batch_size=self.batch_size)
+        return DataLoader(self.dataset)
 
 
 class GraphHomoDatasetType(Enum):
@@ -210,13 +239,15 @@ def get_dataset(
         neighbour_loader: bool, num_neighbours: list[int]
 ):
     if dataset_type == DatasetType.NODE_HOMO:
+        print(f"{neighbour_loader=}")
         datamodule = PlanetoidDataset(
             PlanetoidDatasetType[dataset_name], batch_size=batch_size,
             use_neighbour_loader=neighbour_loader, num_neighbour=num_neighbours
         )
     elif dataset_type == DatasetType.NODE_HETERO:
         datamodule = HeteroDataset(
-            HeteroDatasetType[dataset_name], fold_idx=fold_idx
+            HeteroDatasetType[dataset_name], fold_idx=fold_idx, batch_size=batch_size,
+            num_neighbours=num_neighbours, use_neighbour_loader=neighbour_loader
         )
     elif dataset_type == DatasetType.GRAPH_HOMO:
         datamodule = GraphHomoDataset(

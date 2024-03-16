@@ -20,9 +20,11 @@ class GCN(L.LightningModule):
         graph_classification: bool = False,
         base_optimizer: str = "adam", # Can be "sgd" or "adam"
         seed=1234,
+        lr=0.01,
     ):
         super().__init__()
         self.base_optimizer = base_optimizer
+        self.lr=lr
         if with_sam:
             self.automatic_optimization = False
 
@@ -78,11 +80,11 @@ class GCN(L.LightningModule):
 
         if self.with_sam:
             optimizer = SAM(
-                params=self.parameters(), base_optimizer=base_optimizer, lr=0.01
+                params=self.parameters(), base_optimizer=base_optimizer, lr=self.lr
             )
             return optimizer
 
-        return base_optimizer(self.parameters(), lr=0.01)
+        return base_optimizer(self.parameters(), lr=self.lr)
 
     def training_step(self, batch, batch_idx):
         x = batch.x

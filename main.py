@@ -6,13 +6,6 @@ from utilities.wandb_utilities import get_callbacks
 from lightning.pytorch.loggers import WandbLogger
 
 
-def process_items(ctx, param, value):
-    if value:
-        items = value.split(",")
-        items = [int(item.strip()) for item in items]
-        return items
-
-
 @click.command()
 @click.option(
     "--dataset_type",
@@ -32,7 +25,7 @@ def process_items(ctx, param, value):
 @click.option("--seed", type=int, default=1234)
 @click.option("--use_wandb", type=bool, default=True)
 @click.option("--neighbour_loader/--no_neighbour_loader", default=False)
-@click.option("--num_hops", callback=process_items, default=4)
+@click.option("--num_hops", default=4)
 @click.option("--lr", type=float, default=0.01)
 @click.option("--use_early_stopping", type=bool, default=False)
 @click.option(

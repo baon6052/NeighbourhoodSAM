@@ -28,15 +28,6 @@ parameters:
     values:
     - true
     - false
-
-  batch_size:
-    distribution: categorical
-    values:
-    - 8
-    - 16
-    - 32
-    - 64
-    - 128
   
   base_optimizer:
     distribution: categorical

@@ -2,7 +2,7 @@ import click
 from lightning import Trainer
 from datasets.dataset import get_dataset
 from models.gcn import GCN
-from utilities.wandb_utilities import callbacks
+from utilities.wandb_utilities import get_callbacks
 from lightning.pytorch.loggers import WandbLogger
 
 
@@ -34,6 +34,7 @@ def process_items(ctx, param, value):
 @click.option("--neighbour_loader/--no_neighbour_loader", default=False)
 @click.option("--num_neighbour", callback=process_items, default='10,10')
 @click.option("--lr", type=float, default=0.01)
+@click.option("--use_early_stopping", type=bool, default=True)
 @click.option(
     "--base_optimizer",
     type=click.Choice(
@@ -57,6 +58,7 @@ def main(
     neighbour_loader: bool,
     num_neighbour: list[int],
     lr: float,
+    use_early_stopping: bool,
 ):
     datamodule = get_dataset(dataset_type, dataset_name, fold_idx, batch_size,
                              neighbour_loader, num_neighbour)
@@ -83,7 +85,7 @@ def main(
         max_epochs=300,
         fast_dev_run=False,
         logger=wandb_logger,
-        callbacks=callbacks
+        callbacks=get_callbacks(use_early_stopping=use_early_stopping)
     )
 
     trainer.fit(model, datamodule=datamodule)

@@ -34,7 +34,7 @@ def process_items(ctx, param, value):
 @click.option("--neighbour_loader/--no_neighbour_loader", default=False)
 @click.option("--num_neighbour", callback=process_items, default='10,10')
 @click.option("--lr", type=float, default=0.01)
-@click.option("--use_early_stopping", type=bool, default=True)
+@click.option("--use_early_stopping", type=bool, default=False)
 @click.option(
     "--base_optimizer",
     type=click.Choice(

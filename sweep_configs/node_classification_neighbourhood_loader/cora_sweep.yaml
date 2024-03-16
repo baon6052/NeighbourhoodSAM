@@ -34,9 +34,9 @@ parameters:
     distribution: categorical
     values:
     - 8
-    - 16
+    # - 16
     - 32
-    - 64
+    # - 64
     - 128
   
   base_optimizer:
@@ -56,9 +56,10 @@ parameters:
   hidden_dim:
     distribution: categorical
     values:
-    - 4
-    - 64
-    - 128
+    # - 4
+    - 16
+    # - 64
+    # - 128
 
   seed:  # number of folds
     distribution: categorical
@@ -71,7 +72,8 @@ parameters:
     distribution: categorical
     values:
       - '1,1'
-      - '2,2'
+      # - '2,2'
       - '4,4'
-      - '8,8'
-      - '16,16'
+      # - '8,8'
+      # - '16,16'
+      - '-1,-1'

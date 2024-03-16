@@ -32,7 +32,7 @@ def process_items(ctx, param, value):
 @click.option("--seed", type=int, default=1234)
 @click.option("--use_wandb", type=bool, default=True)
 @click.option("--neighbour_loader/--no_neighbour_loader", default=False)
-@click.option("--num_neighbour", callback=process_items, default='10,10')
+@click.option("--num_hops", callback=process_items, default=4)
 @click.option("--lr", type=float, default=0.01)
 @click.option("--use_early_stopping", type=bool, default=False)
 @click.option(
@@ -56,12 +56,12 @@ def main(
     use_wandb: bool,
     base_optimizer: str,
     neighbour_loader: bool,
-    num_neighbour: list[int],
+    num_hops: int,
     lr: float,
     use_early_stopping: bool,
 ):
     datamodule = get_dataset(dataset_type, dataset_name, fold_idx, batch_size,
-                             neighbour_loader, num_neighbour)
+                             neighbour_loader, num_hops)
     model = GCN(
         num_features=datamodule.num_features,
         num_classes=datamodule.num_classes,

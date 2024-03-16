@@ -45,7 +45,6 @@ parameters:
       - adam
       - sgd
 
-
   hidden_dim:
     distribution: categorical
     values:
@@ -60,12 +59,9 @@ parameters:
     - 1
     - 2
 
-  num_neighbour:
+  num_hops:
     distribution: categorical
     values:
-      - '1,1'
-      # - '2,2'
-      - '4,4'
-      # - '8,8'
-      # - '16,16'
-      - '-1,-1'
+      - 4
+      - 16
+      - 64

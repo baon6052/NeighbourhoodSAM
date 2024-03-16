@@ -11,6 +11,8 @@ setup_tests/
 **__pycache__**
 wandb
 
+checkpoints/
+
 .idea/
 .vscode/
 .DS_Store

@@ -2,7 +2,7 @@ program: main.py
 entity: r252_bel
 project: setup_tests
 
-name: CiteSeer-GCN
+name: neighbour_loader_node_class_Cora-GCN
 
 command:
 - ${env}

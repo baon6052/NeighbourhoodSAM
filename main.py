@@ -24,7 +24,7 @@ def process_items(ctx, param, value):
 )
 @click.option("--dataset_name", default="CORA")
 @click.option("--fold_idx", type=int, default=0)
-@click.option("--num_layers", type=int, default=3)
+@click.option("--num_layers", type=int, default=2)
 @click.option("--hidden_dim", type=int, default=64)
 @click.option("--graph_classification", type=bool, default=False)
 @click.option("--batch_size", type=int, default=64)
@@ -34,7 +34,7 @@ def process_items(ctx, param, value):
 @click.option("--neighbour_loader/--no_neighbour_loader", default=False)
 @click.option("--num_neighbour", callback=process_items, default='10,10')
 @click.option("--lr", type=float, default=0.01)
-@click.option("--use_early_stopping", type=bool, default=True)
+@click.option("--use_early_stopping", type=bool, default=False)
 @click.option(
     "--base_optimizer",
     type=click.Choice(
@@ -80,9 +80,8 @@ def main(
         wandb_logger = WandbLogger(project="setup_tests", entity="r252_bel", log_model=True)
 
     trainer = Trainer(
-        limit_train_batches=100,
         accelerator='auto',
-        max_epochs=300,
+        max_epochs=500,
         fast_dev_run=False,
         logger=wandb_logger,
         callbacks=get_callbacks(use_early_stopping=use_early_stopping)

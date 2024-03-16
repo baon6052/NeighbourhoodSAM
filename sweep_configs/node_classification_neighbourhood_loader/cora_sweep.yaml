@@ -46,20 +46,12 @@ parameters:
       - sgd
 
 
-  num_layers:
-    distribution: categorical
-    values:
-    - 1
-    - 3
-    - 10
-
   hidden_dim:
     distribution: categorical
     values:
-    # - 4
     - 16
-    # - 64
-    # - 128
+    - 32
+    - 64
 
   seed:  # number of folds
     distribution: categorical

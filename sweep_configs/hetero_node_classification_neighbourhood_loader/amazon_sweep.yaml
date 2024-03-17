@@ -33,10 +33,9 @@ parameters:
   batch_size:
     distribution: categorical
     values:
-      - 512
-      - 1024
-      - 2048
-      - 4096
+      - 8
+      - 32
+      - 128
 
   base_optimizer:
     distribution: categorical
@@ -47,8 +46,6 @@ parameters:
   hidden_dim:
     distribution: categorical
     values:
-    - 16
-    - 32
     - 64
 
   seed:  # number of folds

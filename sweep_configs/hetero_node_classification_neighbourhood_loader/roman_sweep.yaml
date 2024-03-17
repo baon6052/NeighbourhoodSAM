@@ -2,7 +2,7 @@ program: main.py
 entity: r252_bel
 project: setup_tests
 
-name: Roman-GCN
+name: Roman-GCN-NeighbourLoader
 
 command:
 - ${env}

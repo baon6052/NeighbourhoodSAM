@@ -2,7 +2,7 @@ program: main.py
 entity: r252_bel
 project: setup_tests
 
-name: Amazon-GCN-NeighbourLoader
+name: Amazon-GCN
 
 command:
 - ${env}
@@ -33,9 +33,10 @@ parameters:
   batch_size:
     distribution: categorical
     values:
-      - 8
-      - 32
-      - 128
+      - 512
+      - 1024
+      - 2048
+      - 4096
 
   base_optimizer:
     distribution: categorical
@@ -46,6 +47,8 @@ parameters:
   hidden_dim:
     distribution: categorical
     values:
+    - 16
+    - 32
     - 64
 
   seed:  # number of folds
@@ -58,7 +61,6 @@ parameters:
   num_hops:
     distribution: categorical
     values:
-      - 1
-      - 2
-      - 3
       - 4
+      - 16
+      - 64

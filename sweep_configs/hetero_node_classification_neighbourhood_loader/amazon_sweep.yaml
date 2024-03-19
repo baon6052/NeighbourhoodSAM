@@ -47,8 +47,6 @@ parameters:
   hidden_dim:
     distribution: categorical
     values:
-    - 16
-    - 32
     - 64
 
   seed:  # number of folds
@@ -61,6 +59,6 @@ parameters:
   num_hops:
     distribution: categorical
     values:
+      - 2
       - 4
-      - 16
-      - 64
+      - 6

@@ -60,6 +60,6 @@ parameters:
   num_hops:
     distribution: categorical
     values:
+      - 2
       - 4
-      - 16
-      - 64
+      - 6

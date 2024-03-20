@@ -1,5 +1,7 @@
 # NeighbourhoodSAM
 
+Sharpness-Aware-Minimisation for transductive node classification, via neighbourhood sampling.
+
 ## Installation instructions:
 
 ## Create and activate conda evironment with python=3.11.8  

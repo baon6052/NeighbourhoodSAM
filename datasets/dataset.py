@@ -235,7 +235,6 @@ def get_dataset(
         neighbour_loader: bool, num_hops: int
 ):
     if dataset_type == DatasetType.NODE_HOMO:
-        print(f"{neighbour_loader=}")
         datamodule = PlanetoidDataset(
             PlanetoidDatasetType[dataset_name], batch_size=batch_size,
             use_neighbour_loader=neighbour_loader, num_hops=num_hops

@@ -77,6 +77,7 @@ def main(
         max_epochs=50,
         fast_dev_run=False,
         logger=wandb_logger,
+        log_every_n_steps=1,
         callbacks=get_callbacks(use_early_stopping=use_early_stopping)
     )
 

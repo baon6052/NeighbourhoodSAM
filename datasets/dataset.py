@@ -87,7 +87,7 @@ class NodeClassificationDataset(L.LightningDataModule):
             return NeighborLoader(self.dataset.data,
                                   num_neighbors=[-1] * self.num_hops,
                                   input_nodes=self.dataset.data.train_mask,
-                                  batch_size=self.batch_size)
+                                  batch_size=self.batch_size, num_workers=7, persistent_workers=True)
         return DataLoader(self.dataset)
 
     def val_dataloader(self) -> DataLoader:
@@ -96,7 +96,7 @@ class NodeClassificationDataset(L.LightningDataModule):
             return NeighborLoader(self.dataset.data,
                                   num_neighbors=[-1] * self.num_hops,
                                   input_nodes=self.dataset.data.val_mask,
-                                  batch_size=self.batch_size)
+                                  batch_size=self.batch_size, num_workers=7, persistent_workers=True)
         return DataLoader(self.dataset)
 
     def test_dataloader(self) -> DataLoader:
@@ -104,7 +104,7 @@ class NodeClassificationDataset(L.LightningDataModule):
             return NeighborLoader(self.dataset.data,
                                   num_neighbors=[-1] * self.num_hops,
                                   input_nodes=self.dataset.data.test_mask,
-                                  batch_size=self.batch_size)
+                                  batch_size=self.batch_size, num_workers=7, persistent_workers=True)
         return DataLoader(self.dataset)
 
 
@@ -175,21 +175,21 @@ class HeteroDataset(NodeClassificationDataset):
         if self.use_neighbour_loader:
             return NeighborLoader(self.data, num_neighbors=[-1] * self.num_hops,
                                   input_nodes=self.data.train_mask,
-                                  batch_size=self.batch_size)
+                                  batch_size=self.batch_size, num_workers=7, persistent_workers=True)
         return DataLoader(self.dataset)
 
     def val_dataloader(self) -> DataLoader:
         if self.use_neighbour_loader:
             return NeighborLoader(self.data, num_neighbors=[-1] * self.num_hops,
                                   input_nodes=self.data.val_mask,
-                                  batch_size=self.batch_size)
+                                  batch_size=self.batch_size, num_workers=7, persistent_workers=True)
         return DataLoader(self.dataset)
 
     def test_dataloader(self) -> DataLoader:
         if self.use_neighbour_loader:
             return NeighborLoader(self.data, num_neighbors=[-1] * self.num_hops,
                                   input_nodes=self.data.test_mask,
-                                  batch_size=self.batch_size)
+                                  batch_size=self.batch_size, num_workers=7, persistent_workers=True)
         return DataLoader(self.dataset)
 
 
@@ -219,13 +219,13 @@ class GraphHomoDataset(Dataset):
         self.num_classes = self.train_data.num_classes
 
     def train_dataloader(self) -> DataLoader:
-        return DataLoader(self.train_data, batch_size=self.batch_size)
+        return DataLoader(self.train_data, batch_size=self.batch_size, num_workers=7, persistent_workers=True)
 
     def val_dataloader(self) -> DataLoader:
-        return DataLoader(self.val_data, batch_size=self.batch_size)
+        return DataLoader(self.val_data, batch_size=self.batch_size, num_workers=7, persistent_workers=True)
 
     def test_dataloader(self) -> DataLoader:
-        return DataLoader(self.test_data, batch_size=self.batch_size)
+        return DataLoader(self.test_data, batch_size=self.batch_size, num_workers=7, persistent_workers=True)
 
 
 

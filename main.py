@@ -74,7 +74,7 @@ def main(
 
     trainer = Trainer(
         accelerator='auto',
-        max_epochs=75,
+        max_epochs=50,
         fast_dev_run=False,
         logger=wandb_logger,
         callbacks=get_callbacks(use_early_stopping=use_early_stopping)

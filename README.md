@@ -1,4 +1,4 @@
-# gnn_sam
+# NeighbourhoodSAM
 
 ## Installation instructions:
 

@@ -3,25 +3,24 @@ import torch
 from torch import nn, optim
 from torch.nn import Linear
 from torch.nn.functional import elu, softmax
-from torch_geometric.nn import GCNConv, global_mean_pool
+from torch_geometric.nn import GCNConv, global_mean_pool, GraphSAGE, SAGEConv
 from torchmetrics import AUROC
 
 from sam import SAM
 
 
-class GCN(L.LightningModule):
+class GraphSage(L.LightningModule):
     def __init__(
         self,
         num_features: int,
         num_classes: int,
-        num_hidden_layers: int = 1,
-        num_hidden: int = 4,
+        num_hidden_layers: int = 2,
+        num_hidden: int = 128,
         with_sam: bool = True,
         graph_classification: bool = False,
         base_optimizer: str = "adam", # Can be "sgd" or "adam"
         seed=1234,
         lr=0.01,
-        rho=0.05
     ):
         super().__init__()
         self.base_optimizer = base_optimizer
@@ -33,12 +32,12 @@ class GCN(L.LightningModule):
         self.graph_classification = graph_classification
 
         torch.manual_seed(seed)
-        self.conv1 = GCNConv(num_features, num_hidden)
+        self.conv1 = SAGEConv(num_features, num_hidden)
 
         self.hidden_layers = []
 
         for _ in range(num_hidden_layers):
-            self.hidden_layers.append(GCNConv(num_hidden, num_hidden))
+            self.hidden_layers.append(SAGEConv(num_hidden, num_hidden))
 
         self.hidden_layers = nn.ModuleList(self.hidden_layers)
 
@@ -48,7 +47,6 @@ class GCN(L.LightningModule):
         self.pool = global_mean_pool
 
         self.roc_auc_score = AUROC(task="multiclass", num_classes=num_classes)
-        self.rho = rho
 
     def forward(self, x, edge_index, batch):
         h = self.conv1(x, edge_index)
@@ -82,7 +80,7 @@ class GCN(L.LightningModule):
 
         if self.with_sam:
             optimizer = SAM(
-                params=self.parameters(), base_optimizer=base_optimizer, lr=self.lr, rho=self.rho
+                params=self.parameters(), base_optimizer=base_optimizer, lr=self.lr
             )
             return optimizer
 

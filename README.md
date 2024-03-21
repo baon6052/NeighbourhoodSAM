@@ -1,4 +1,6 @@
-# gnn_sam
+# NeighbourhoodSAM
+
+Sharpness-Aware-Minimisation for transductive node classification, via neighbourhood sampling.
 
 ## Installation instructions:
 

@@ -2,18 +2,19 @@ program: main.py
 entity: r252_bel
 project: setup_tests
 
-name: CIFAR10-GCN
+name: neighbour_loader_node_class_Cora-GCN
 
 command:
 - ${env}
 - ${interpreter}
 - ${program}
-- --dataset_name
-- CIFAR10
 - --dataset_type
-- graph_homo
+- node_homo
+- --dataset_name
+- CORA
 - --graph_classification
-- true
+- false
+- --neighbour_loader
 - ${args}
 
 metric:
@@ -32,12 +33,8 @@ parameters:
   batch_size:
     distribution: categorical
     values:
-      - 128
-      - 512
-      - 1024
-      - 2048
-      - 4096
-
+    - 128
+  
   base_optimizer:
     distribution: categorical
     values:
@@ -55,3 +52,8 @@ parameters:
     - 0
     - 1
     - 2
+
+  num_hops:
+    distribution: categorical
+    values:
+      - 6

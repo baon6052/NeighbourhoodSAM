@@ -2,7 +2,7 @@ program: main.py
 entity: r252_bel
 project: setup_tests
 
-name: Amazon-GCN
+name: Amazon-GCN-NL-Vary-Rho
 
 command:
 - ${env}
@@ -34,33 +34,30 @@ parameters:
     distribution: categorical
     values:
       - 512
-      - 1024
-      - 2048
-      - 4096
-
   base_optimizer:
     distribution: categorical
     values:
       - adam
-      - sgd
 
   hidden_dim:
     distribution: categorical
     values:
-    - 16
-    - 32
     - 64
 
   seed:  # number of folds
     distribution: categorical
     values:
     - 0
-    - 1
-    - 2
 
   num_hops:
     distribution: categorical
     values:
       - 4
-      - 16
-      - 64
+
+  rho:
+    distribution: categorical
+    values:
+      - 0.01
+      - 0.05
+      - 0.1
+      - 0.5

@@ -6,7 +6,7 @@ from torch_geometric.datasets import (
     GNNBenchmarkDataset,
     HeterophilousGraphDataset,
     KarateClub,
-    Planetoid,
+    Planetoid, Reddit,
 )
 from torch_geometric.loader import DataLoader, NeighborLoader
 from torch_geometric.transforms.base_transform import BaseTransform
@@ -87,7 +87,7 @@ class NodeClassificationDataset(L.LightningDataModule):
             return NeighborLoader(self.dataset.data,
                                   num_neighbors=[-1] * self.num_hops,
                                   input_nodes=self.dataset.data.train_mask,
-                                  batch_size=self.batch_size)
+                                  batch_size=self.batch_size, num_workers=7, persistent_workers=True)
         return DataLoader(self.dataset)
 
     def val_dataloader(self) -> DataLoader:
@@ -96,7 +96,7 @@ class NodeClassificationDataset(L.LightningDataModule):
             return NeighborLoader(self.dataset.data,
                                   num_neighbors=[-1] * self.num_hops,
                                   input_nodes=self.dataset.data.val_mask,
-                                  batch_size=self.batch_size)
+                                  batch_size=self.batch_size, num_workers=7, persistent_workers=True)
         return DataLoader(self.dataset)
 
     def test_dataloader(self) -> DataLoader:
@@ -104,10 +104,45 @@ class NodeClassificationDataset(L.LightningDataModule):
             return NeighborLoader(self.dataset.data,
                                   num_neighbors=[-1] * self.num_hops,
                                   input_nodes=self.dataset.data.test_mask,
-                                  batch_size=self.batch_size)
+                                  batch_size=self.batch_size, num_workers=7, persistent_workers=True)
         return DataLoader(self.dataset)
 
 
+class RedditDataset(NodeClassificationDataset):
+    def __init__(self, batch_size: int, use_neighbour_loader: bool, num_hops: int):
+        super().__init__(batch_size=batch_size, num_hops=num_hops,
+                         use_neighbour_loader=use_neighbour_loader)
+        self.batch_size = batch_size
+        self.use_neighbour_loader = use_neighbour_loader
+        self.num_hops = num_hops
+        self.dataset = Reddit(root="data")
+        self.num_features = self.dataset.num_features
+        self.num_classes = self.dataset.num_classes
+
+    def train_dataloader(self) -> DataLoader:
+        if self.use_neighbour_loader:
+            return NeighborLoader(self.dataset.data,
+                                  num_neighbors=[25, 10],
+                                  input_nodes=self.dataset.data.train_mask,
+                                  batch_size=self.batch_size, num_workers=7, persistent_workers=True)
+        return DataLoader(self.dataset)
+
+    def val_dataloader(self) -> DataLoader:
+        if self.use_neighbour_loader:
+            print(self.dataset.data)
+            return NeighborLoader(self.dataset.data,
+                                  num_neighbors=[25, 10],
+                                  input_nodes=self.dataset.data.val_mask,
+                                  batch_size=self.batch_size, num_workers=7, persistent_workers=True)
+        return DataLoader(self.dataset)
+
+    def test_dataloader(self) -> DataLoader:
+        if self.use_neighbour_loader:
+            return NeighborLoader(self.dataset.data,
+                                  num_neighbors=[25, 10],
+                                  input_nodes=self.dataset.data.test_mask,
+                                  batch_size=self.batch_size, num_workers=7, persistent_workers=True)
+        return DataLoader(self.dataset)
 
 class KarateClubDataset(Dataset):
     def __init__(self):
@@ -175,21 +210,21 @@ class HeteroDataset(NodeClassificationDataset):
         if self.use_neighbour_loader:
             return NeighborLoader(self.data, num_neighbors=[-1] * self.num_hops,
                                   input_nodes=self.data.train_mask,
-                                  batch_size=self.batch_size)
+                                  batch_size=self.batch_size, num_workers=7, persistent_workers=True)
         return DataLoader(self.dataset)
 
     def val_dataloader(self) -> DataLoader:
         if self.use_neighbour_loader:
             return NeighborLoader(self.data, num_neighbors=[-1] * self.num_hops,
                                   input_nodes=self.data.val_mask,
-                                  batch_size=self.batch_size)
+                                  batch_size=self.batch_size, num_workers=7, persistent_workers=True)
         return DataLoader(self.dataset)
 
     def test_dataloader(self) -> DataLoader:
         if self.use_neighbour_loader:
             return NeighborLoader(self.data, num_neighbors=[-1] * self.num_hops,
                                   input_nodes=self.data.test_mask,
-                                  batch_size=self.batch_size)
+                                  batch_size=self.batch_size, num_workers=7, persistent_workers=True)
         return DataLoader(self.dataset)
 
 
@@ -219,13 +254,13 @@ class GraphHomoDataset(Dataset):
         self.num_classes = self.train_data.num_classes
 
     def train_dataloader(self) -> DataLoader:
-        return DataLoader(self.train_data, batch_size=self.batch_size)
+        return DataLoader(self.train_data, batch_size=self.batch_size, num_workers=7, persistent_workers=True)
 
     def val_dataloader(self) -> DataLoader:
-        return DataLoader(self.val_data, batch_size=self.batch_size)
+        return DataLoader(self.val_data, batch_size=self.batch_size, num_workers=7, persistent_workers=True)
 
     def test_dataloader(self) -> DataLoader:
-        return DataLoader(self.test_data, batch_size=self.batch_size)
+        return DataLoader(self.test_data, batch_size=self.batch_size, num_workers=7, persistent_workers=True)
 
 
 
@@ -236,10 +271,14 @@ def get_dataset(
 ):
     if dataset_type == DatasetType.NODE_HOMO:
         print(f"{neighbour_loader=}")
-        datamodule = PlanetoidDataset(
-            PlanetoidDatasetType[dataset_name], batch_size=batch_size,
-            use_neighbour_loader=neighbour_loader, num_hops=num_hops
-        )
+
+        if dataset_name == "reddit":
+            datamodule = RedditDataset(batch_size=batch_size, use_neighbour_loader=neighbour_loader, num_hops=num_hops)
+        else:
+            datamodule = PlanetoidDataset(
+                PlanetoidDatasetType[dataset_name], batch_size=batch_size,
+                use_neighbour_loader=neighbour_loader, num_hops=num_hops
+            )
     elif dataset_type == DatasetType.NODE_HETERO:
         datamodule = HeteroDataset(
             HeteroDatasetType[dataset_name], fold_idx=fold_idx, batch_size=batch_size,

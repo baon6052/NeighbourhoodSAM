@@ -1,0 +1,2 @@
+python main_reddit.py --base_optimizer sgd --num_hops 2 --batch_size 128 --seed 2 --neighbour_loader --use_wandb True --with_sam True
+python main_reddit.py --base_optimizer sgd --num_hops 2 --batch_size 128 --seed 2 --neighbour_loader --use_wandb True --with_sam False

@@ -3,6 +3,7 @@ import torch
 from lightning import Trainer
 from datasets.dataset import get_dataset
 from models.gcn import GCN
+from models.graph_sage import GraphSage
 from utilities.wandb_utilities import get_callbacks
 from lightning.pytorch.loggers import WandbLogger
 
@@ -16,17 +17,17 @@ from lightning.pytorch.loggers import WandbLogger
     default="node_homo",
     help="The dataset to use. Options are homo and hetero",
 )
-@click.option("--dataset_name", default="CORA")
+@click.option("--dataset_name", default="reddit")
 @click.option("--fold_idx", type=int, default=0)
 @click.option("--num_layers", type=int, default=2)
-@click.option("--hidden_dim", type=int, default=64)
+@click.option("--hidden_dim", type=int, default=128)
 @click.option("--graph_classification", type=bool, default=False)
-@click.option("--batch_size", type=int, default=64)
+@click.option("--batch_size", type=int, default=512)
 @click.option("--with_sam", type=bool, default=True)
 @click.option("--seed", type=int, default=1234)
 @click.option("--use_wandb", type=bool, default=True)
 @click.option("--neighbour_loader/--no_neighbour_loader", default=False)
-@click.option("--num_hops", default=4)
+@click.option("--num_hops", default=2)
 @click.option("--lr", type=float, default=0.01)
 @click.option("--use_early_stopping", type=bool, default=False)
 @click.option(
@@ -56,7 +57,7 @@ def main(
 ):
     datamodule = get_dataset(dataset_type, dataset_name, fold_idx, batch_size,
                              neighbour_loader, num_hops)
-    model = GCN(
+    model = GraphSage(
         num_features=datamodule.num_features,
         num_classes=datamodule.num_classes,
         num_hidden=hidden_dim,
@@ -75,7 +76,7 @@ def main(
 
     trainer = Trainer(
         accelerator='auto',
-        max_epochs=500,
+        max_epochs=10,
         fast_dev_run=False,
         logger=wandb_logger,
         callbacks=get_callbacks(use_early_stopping=use_early_stopping)
@@ -83,7 +84,7 @@ def main(
 
     trainer.fit(model, datamodule=datamodule)
     trainer.test(model, datamodule=datamodule)
-    torch.save(model.state_dict(), "hello_no_sam.ckpt")
+    torch.save(model.state_dict(), f"reddit_{with_sam}.ckpt")
 
 
 if __name__ == "__main__":

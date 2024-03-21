@@ -34,15 +34,10 @@ parameters:
     distribution: categorical
     values:
       - 512
-      - 1024
-      - 2048
-      - 4096
-
   base_optimizer:
     distribution: categorical
     values:
       - adam
-      - sgd
 
   hidden_dim:
     distribution: categorical
@@ -59,6 +54,12 @@ parameters:
   num_hops:
     distribution: categorical
     values:
-      - 2
       - 4
-      - 6
+
+  rho:
+    distribution: categorical
+    values:
+      - 0.01
+      - 0.05
+      - 0.1
+      - 0.5

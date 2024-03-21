@@ -21,6 +21,7 @@ class GCN(L.LightningModule):
         base_optimizer: str = "adam", # Can be "sgd" or "adam"
         seed=1234,
         lr=0.01,
+        rho=0.05
     ):
         super().__init__()
         self.base_optimizer = base_optimizer
@@ -47,6 +48,7 @@ class GCN(L.LightningModule):
         self.pool = global_mean_pool
 
         self.roc_auc_score = AUROC(task="multiclass", num_classes=num_classes)
+        self.rho = rho
 
     def forward(self, x, edge_index, batch):
         h = self.conv1(x, edge_index)
@@ -80,7 +82,7 @@ class GCN(L.LightningModule):
 
         if self.with_sam:
             optimizer = SAM(
-                params=self.parameters(), base_optimizer=base_optimizer, lr=self.lr
+                params=self.parameters(), base_optimizer=base_optimizer, lr=self.lr, rho=self.rho
             )
             return optimizer
 

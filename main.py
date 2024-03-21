@@ -36,6 +36,7 @@ from lightning.pytorch.loggers import WandbLogger
     default="adam",
     help="The base optimizer to use. Options are adam and sgd. Can be used in conjunction with SAM",
 )
+@click.option("--rho", type=float, default=0.05)
 def main(
     dataset_type: str,
     dataset_name: str,
@@ -52,6 +53,7 @@ def main(
     num_hops: int,
     lr: float,
     use_early_stopping: bool,
+    rho: float
 ):
     datamodule = get_dataset(dataset_type, dataset_name, fold_idx, batch_size,
                              neighbour_loader, num_hops)
@@ -64,7 +66,8 @@ def main(
         with_sam=with_sam,
         seed=seed,
         base_optimizer=base_optimizer,
-        lr=lr
+        lr=lr,
+        rho=rho
     )
 
     wandb_logger = None

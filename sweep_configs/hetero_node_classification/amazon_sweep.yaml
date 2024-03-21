@@ -2,7 +2,7 @@ program: main.py
 entity: r252_bel
 project: setup_tests
 
-name: Amazon-GCN
+name: Amazon-GCN-Vary-Rho
 
 command:
 - ${env}
@@ -43,8 +43,6 @@ parameters:
     distribution: categorical
     values:
     - 0
-    - 1
-    - 2
 
   rho:
     distribution: categorical

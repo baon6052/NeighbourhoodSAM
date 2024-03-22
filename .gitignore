@@ -10,6 +10,7 @@ data/
 setup_tests/
 **__pycache__**
 wandb
+artifacts/
 
 checkpoints/
 

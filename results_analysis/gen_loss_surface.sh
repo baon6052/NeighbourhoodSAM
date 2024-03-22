@@ -1,0 +1,1 @@
+python results_analysis/eval_loss_surface.py --seed 2 --checkpoint_reference_1 r252_bel/setup_tests/ovswofzl --checkpoint_reference_2 r252_bel/setup_tests/axrcvqkm

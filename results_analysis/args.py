@@ -11,12 +11,15 @@ parser.add_argument(
 )
 parser.add_argument("--dataset_name", type=str, default="CORA", help="The name of the dataset.")
 parser.add_argument("--fold_idx", type=int, default=0, help="Index of the fold for cross-validation.")
-parser.add_argument("--num_layers", type=int, default=3, help="Number of layers.")
+parser.add_argument("--num_layers", type=int, default=2, help="Number of layers.")
 parser.add_argument("--hidden_dim", type=int, default=64, help="Dimension of hidden layers.")
 parser.add_argument("--graph_classification", action="store_true", help="Enable graph classification.")
 parser.add_argument("--batch_size", type=int, default=64, help="Batch size for training.")
 parser.add_argument("--with_sam", action="store_true", help="Use SAM optimization.")
 parser.add_argument("--seed", type=int, default=1234, help="Random seed for initialization.")
+
+parser.add_argument("--neighbour_loader", action="store_true")
+parser.add_argument("--num_hops", type=int, default=4)
 
 parser.add_argument("--use_wandb", action="store_true", help="Enable logging to Weights & Biases.")
 parser.add_argument("--wandb_project", type=str, help="Choose wandb project")
